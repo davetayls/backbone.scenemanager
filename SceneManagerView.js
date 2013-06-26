@@ -1,9 +1,8 @@
 /**
- * IntelligentAR: Smilers 2.0 app
  * SceneManager view
  *
  * @author Dave Taylor
- * @author Robin North <robin@playnicely.co.uk>
+ * @author Robin North
  *
  */
 
