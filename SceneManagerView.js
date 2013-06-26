@@ -1,133 +1,184 @@
+/**
+ * IntelligentAR: Smilers 2.0 app
+ * SceneManager view
+ *
+ * @author Dave Taylor
+ * @author Robin North <robin@playnicely.co.uk>
+ *
+ */
 
-define(function(require, exports, module){
+define( function( require ) {
     'use strict';
 
-    var Backbone = require('backbone'),
-        DOM_EVENTS = require('utils/dom_events')
-    ;
+    var Backbone = require( 'backbone' ),
+        DOM_EVENTS = require( 'helpers/dom_events' )
+        ;
 
-    module.exports = Backbone.View.extend({
+    return Backbone.View.extend( {
 
-
-        initialize: function(){
-            _.bindAll(this, 'showTransitions');
-            this.shown = true;
-            this.$current = null;
-            this.currentView = null;
-            this.currentIndex = 0;
-            this.containers = [
-                $(document.createElement('div')),
-                $(document.createElement('div')),
-                $(document.createElement('div'))
-            ];
-            this.history = [];
+        attributes : {
+            class  : 'scene'
         },
-        render: function(){
-            if (this.shown){
+        defaults   : {
+            shown            : true,
+            container        : '<div class="scene__item" />',
+            containersNumber : 3
+        },
+
+        initialize : function() {
+
+            // Init properties
+            _.defaults( this.options, this.defaults );
+
+            this.$currentContainer = null;
+            this.currentSceneItem = null;
+            this.currentSceneItemIndex = 0;
+            this.containers = [];
+            this.history = [];
+            this.historyPosition = 0;
+
+            // Bind contexts
+            _.bindAll( this, 'showTransitions' );
+
+            // Apply attributes if $el already exists
+            if ( this.$el ) {
+                this.$el.attr( _.result( this, 'attributes' ) );
+            }
+
+            // Bind contexts
+            _.bindAll( this, 'showTransitions' );
+        },
+        render     : function() {
+
+            // Show or hide scene, based on options
+            if ( this.options.shown ) {
                 this.show();
             } else {
                 this.hide();
             }
-            _.each(this.containers, function($el, i){
-                this.$el.append($el);
-            }, this);
+
+            // Inject scene content containers
+            for ( var i = 0; i < this.options.containersNumber; i += 1 ) {
+                var $container = $( this.options.container );
+                this.$el.append( $container );
+                this.containers.push( $container );
+            }
+
         },
 
-        getNextIndex: function(){
-            if (this.currentIndex +1 >= this.containers.length){
+        getNextIndex     : function() {
+            if ( this.currentSceneItemIndex + 1 >= this.containers.length ) {
                 return 0;
             } else {
-                return this.currentIndex +1;
+                return this.currentSceneItemIndex + 1;
             }
         },
-        getNextContainer: function(){
-            this.currentIndex = this.getNextIndex();
-            return this.containers[this.currentIndex];
+        getNextContainer : function() {
+            this.currentSceneItemIndex = this.getNextIndex();
+            return this.containers[this.currentSceneItemIndex];
         },
 
-        showView: function(view, back){
-            // cache pointers so we can do this async
-            var currentView = this.currentView,
-                $current    = this.$current,
-                css         = this.transitions ? 'scene transitions' : 'scene'
-            ;
+        showSceneItem    : function( sceneItem, back ) {
 
-            // 1. check if there is a view
+            // cache pointers so we can do this async
+            var currentSceneItem = this.currentSceneItem,
+                $currentContainer = this.$currentContainer,
+                css = this.transitions ? 'scene__item scene__item--transitions' : 'scene__item'
+                ;
+
+            // 1. check if there is a sceneItem
             // 2. check it's not currently visible
-            if (!view || view === currentView){
+            if ( !sceneItem || sceneItem === currentSceneItem ) {
                 return;
             }
 
             // hide current
-            if ($current){
-                $current.one(DOM_EVENTS.transitionEnd, function(e){
-                    currentView.$el.detach();
-                });
-                $current.attr('class', css+ (back ? ' next' : ' previous'));
+            if ( $currentContainer ) {
+                $currentContainer.one( DOM_EVENTS.transitionEnd, function( e ) {
+                    currentSceneItem.$el.detach();
+                } );
+                $currentContainer.attr( 'class', css + (back ? ' scene__item--next' : ' scene__item--previous') );
             }
 
-            // show view
-            this.currentView = view;
-            this.$current = this.getNextContainer();
+            // show sceneItem
+            this.currentSceneItem = sceneItem;
+            this.$currentContainer = this.getNextContainer();
 
             // position the element at the starting position
-            this.$current.attr('class', back ? 'scene previous' : 'scene next');
-            this.$current.append(view.el);
+            this.$currentContainer.attr( 'class', back ? 'scene__item scene__item--previous' : 'scene__item scene__item--next' );
+            this.$currentContainer.append( sceneItem.view.el );
 
             // Force reflow. More information here: http://www.phpied.com/rendering-repaint-reflowrelayout-restyle/
-            var reflow = this.$current[0].offsetWidth;
+            var reflow = this.$currentContainer[0].offsetWidth;
 
             // transition the next page
-            this.$current.attr('class', css+ ' current');
+            this.$currentContainer.attr( 'class', css + ' scene__item--current' );
 
-            // show transitions after first view is added
-            setTimeout(this.showTransitions, 0);
+            // show transitions after first sceneItem is added
+            setTimeout( this.showTransitions, 0 );
 
-            // append view to history
-            if (!back){
-                this.pushHistory(view);
+            // append sceneItem to history
+            if ( !back ) {
+                this.pushHistory( sceneItem );
             }
         },
-        pushHistory: function(view){
-            this.history.splice(this.historyPosition+1);
-            this.history.push(view);
-            this.historyPosition = this.history.length-1;
+        pushHistory : function( sceneItem ) {
+            this.history.splice( this.historyPosition + 1 );
+            this.history.push( sceneItem );
+            this.historyPosition = this.history.length - 1;
+
+            // Trigger routing if specified
+            if ( sceneItem.route ) {
+                Backbone.history.navigate( sceneItem.route );
+            }
         },
 
-        back: function(){
-            this.historyPosition--;
-            this.showView(this.history[this.historyPosition], true);
+        back : function() {
+            var sceneItem,
+                historyPosition = --this.historyPosition
+                ;
+
+            // Check if there's history to navigate
+            if ( historyPosition < 0 ) {
+                return false;
+            }
+
+            // Step back
+            sceneItem = this.history[ historyPosition ];
+            this.showSceneItem( sceneItem, true );
+
+            return true;
         },
 
-        showTransitions: function(yes){
-            if (yes === false){
+        showTransitions : function( yes ) {
+            if ( yes === false ) {
                 this.transitions = false;
-                this.$el.removeClass('scene--transitions');
+                this.$el.removeClass( 'scene--transitions' );
             } else {
                 this.transitions = true;
-                this.$el.addClass('scene--transitions');
+                this.$el.addClass( 'scene--transitions' );
             }
         },
-        show: function(){
-            this.shown = true;
+        show            : function() {
+            this.options.shown = true;
             this.$el
-                .removeClass('scene--hide')
-                .addClass('scene--show');
+                .removeClass( 'scene--hide' )
+                .addClass( 'scene--show' );
         },
-        hide: function(){
-            this.shown = false;
+        hide            : function() {
+            this.options.shown = false;
             this.$el
-                .removeClass('scene--show')
-                .addClass('scene--hide');
+                .removeClass( 'scene--show' )
+                .addClass( 'scene--hide' );
         },
-        toggle: function(){
-            if (this.shown){
+        toggle          : function() {
+            if ( this.shown ) {
                 this.hide();
             } else {
                 this.show();
             }
         }
 
-    });
+    } );
 
-});
+} );
