@@ -94,7 +94,7 @@ define( function( require ) {
             // hide current
             if ( $currentContainer ) {
                 $currentContainer.one( DOM_EVENTS.transitionEnd, function( e ) {
-                    currentSceneItem.$el.detach();
+                    currentSceneItem.view.$el.detach();
                 } );
                 $currentContainer.attr( 'class', css + (back ? ' scene__item--next' : ' scene__item--previous') );
             }
@@ -117,19 +117,19 @@ define( function( require ) {
             setTimeout( this.showTransitions, 0 );
 
             // append sceneItem to history
-            if ( !back ) {
+            if ( ! back ) {
                 this.pushHistory( sceneItem );
+            }
+
+            // Trigger routing if specified
+            if ( sceneItem.route ) {
+                Backbone.history.navigate( sceneItem.route );
             }
         },
         pushHistory : function( sceneItem ) {
             this.history.splice( this.historyPosition + 1 );
             this.history.push( sceneItem );
             this.historyPosition = this.history.length - 1;
-
-            // Trigger routing if specified
-            if ( sceneItem.route ) {
-                Backbone.history.navigate( sceneItem.route );
-            }
         },
 
         back : function() {
