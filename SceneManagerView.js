@@ -40,15 +40,15 @@ define( function( require ) {
             this.transitionsActive = false;
 
             // Bind contexts
-            _.bindAll( this, 'showTransitions' );
+            _.bindAll( this, 'showTransitions', 'onTransitionEnd' );
 
             // Apply attributes if $el already exists
             if ( this.$el ) {
                 this.$el.attr( _.result( this, 'attributes' ) );
             }
 
-            // Bind contexts
-            _.bindAll( this, 'showTransitions' );
+            // Capture transitionend events
+            this.$el.on( DOM_EVENTS.transitionEnd, this.onTransitionEnd );
         },
         render     : function() {
 
@@ -186,6 +186,17 @@ define( function( require ) {
             } else {
                 this.show();
             }
+        },
+
+        // Event handlers
+
+        /**
+         * Scene 'transitionend' event handler
+         *
+         * @param {Event}  e
+         */
+        onTransitionEnd  : function( e ) {
+            this.trigger( 'sceneTransitionEnd' );
         }
 
     } );
