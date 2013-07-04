@@ -1,8 +1,8 @@
 /**
  * SceneManager view
  *
- * @author Dave Taylor
- * @author Robin North
+ * @author Dave Taylor <dave.taylor@pogokid.com>
+ * @author Robin North <robin@playnicely.co.uk>
  *
  */
 
@@ -19,9 +19,11 @@ define( function( require ) {
             class  : 'scene'
         },
         defaults   : {
-            shown            : true,
-            container        : '<div class="scene__item" />',
-            containersNumber : 3
+            container         : '<div class="scene__item" />',
+            containersNumber  : 3,
+            initialTransition : true,
+            shown             : true,
+            transitions       : true
         },
 
         initialize : function() {
@@ -35,6 +37,7 @@ define( function( require ) {
             this.containers = [];
             this.history = [];
             this.historyPosition = 0;
+            this.transitionsActive = false;
 
             // Bind contexts
             _.bindAll( this, 'showTransitions' );
@@ -49,6 +52,8 @@ define( function( require ) {
         },
         render     : function() {
 
+            var i;
+
             // Show or hide scene, based on options
             if ( this.options.shown ) {
                 this.show();
@@ -57,7 +62,7 @@ define( function( require ) {
             }
 
             // Inject scene content containers
-            for ( var i = 0; i < this.options.containersNumber; i += 1 ) {
+            for ( i = 0; i < this.options.containersNumber; i++ ) {
                 var $container = $( this.options.container );
                 this.$el.append( $container );
                 this.containers.push( $container );
@@ -82,8 +87,8 @@ define( function( require ) {
             // cache pointers so we can do this async
             var currentSceneItem = this.currentSceneItem,
                 $currentContainer = this.$currentContainer,
-                css = this.transitions ? 'scene__item scene__item--transitions' : 'scene__item'
-                ;
+                css = this.options.transitions ? 'scene__item scene__item--transitions' : 'scene__item'
+            ;
 
             // 1. check if there is a sceneItem
             // 2. check it's not currently visible
@@ -110,11 +115,16 @@ define( function( require ) {
             // Force reflow. More information here: http://www.phpied.com/rendering-repaint-reflowrelayout-restyle/
             var reflow = this.$currentContainer[0].offsetWidth;
 
+            // show transitions immediately
+            if ( this.options.initialTransition ) {
+                this.showTransitions( this.options.transitions );
+                // show transitions after first sceneItem is added
+            } else {
+                setTimeout( this.showTransitions, 0, this.options.transitions );
+            }
+
             // transition the next page
             this.$currentContainer.attr( 'class', css + ' scene__item--current' );
-
-            // show transitions after first sceneItem is added
-            setTimeout( this.showTransitions, 0 );
 
             // append sceneItem to history
             if ( ! back ) {
@@ -151,10 +161,10 @@ define( function( require ) {
 
         showTransitions : function( yes ) {
             if ( yes === false ) {
-                this.transitions = false;
+                this.transitionsActive = false;
                 this.$el.removeClass( 'scene--transitions' );
             } else {
-                this.transitions = true;
+                this.transitionsActive = true;
                 this.$el.addClass( 'scene--transitions' );
             }
         },
