@@ -3,7 +3,6 @@
  *
  * @author Dave Taylor <dave.taylor@pogokid.com>
  * @author Robin North <robin@playnicely.co.uk>
- *
  */
 
 define( function( require ) {
@@ -87,8 +86,10 @@ define( function( require ) {
             // cache pointers so we can do this async
             var currentSceneItem = this.currentSceneItem,
                 $currentContainer = this.$currentContainer,
-                css = this.options.transitions ? 'scene__item scene__item--transitions' : 'scene__item'
-            ;
+                nextSceneItem,
+                $nextContainer,
+                css = this.options.transitions ? 'scene__item scene__item--transitions scene__item--transitioning' : 'scene__item'
+                ;
 
             // 1. check if there is a sceneItem
             // 2. check it's not currently visible
@@ -100,20 +101,25 @@ define( function( require ) {
             if ( $currentContainer ) {
                 $currentContainer.one( DOM_EVENTS.transitionEnd, function( e ) {
                     currentSceneItem.view.$el.detach();
+                    $currentContainer.removeClass( 'scene__item--transitioning' );
                 } );
                 $currentContainer.attr( 'class', css + (back ? ' scene__item--next' : ' scene__item--previous') );
             }
 
             // show sceneItem
-            this.currentSceneItem = sceneItem;
-            this.$currentContainer = this.getNextContainer();
+            nextSceneItem = this.currentSceneItem = sceneItem;
+            $nextContainer = this.$currentContainer = this.getNextContainer();
+
+            $nextContainer.one( DOM_EVENTS.transitionEnd, function( e ) {
+                $nextContainer.removeClass( 'scene__item--transitioning' );
+            } );
 
             // position the element at the starting position
-            this.$currentContainer.attr( 'class', back ? 'scene__item scene__item--previous' : 'scene__item scene__item--next' );
-            this.$currentContainer.append( sceneItem.view.el );
+            $nextContainer.attr( 'class', back ? 'scene__item scene__item--previous' : 'scene__item scene__item--next' );
+            $nextContainer.append( nextSceneItem.view.el );
 
             // Force reflow. More information here: http://www.phpied.com/rendering-repaint-reflowrelayout-restyle/
-            var reflow = this.$currentContainer[0].offsetWidth;
+            var reflow = $nextContainer[0].offsetWidth;
 
             // show transitions immediately
             if ( this.options.initialTransition ) {
@@ -124,21 +130,21 @@ define( function( require ) {
             }
 
             // transition the next page
-            this.$currentContainer.attr( 'class', css + ' scene__item--current' );
+            $nextContainer.attr( 'class', css + ' scene__item--current' );
 
             // append sceneItem to history
             if ( ! back ) {
-                this.pushHistory( sceneItem );
+                this.pushHistory( nextSceneItem );
             }
 
             // Trigger routing if specified
-            if ( sceneItem.route ) {
-                Backbone.history.navigate( sceneItem.route );
+            if ( nextSceneItem.route ) {
+                Backbone.history.navigate( nextSceneItem.route );
             }
         },
-        pushHistory : function( sceneItem ) {
+        pushHistory : function( nextSceneItem ) {
             this.history.splice( this.historyPosition + 1 );
-            this.history.push( sceneItem );
+            this.history.push( nextSceneItem );
             this.historyPosition = this.history.length - 1;
         },
 
