@@ -86,7 +86,7 @@ define( function( require ) {
                 $currentContainer = this.$currentContainer,
                 nextSceneItem,
                 $nextContainer,
-                css = this.options.transitions ? 'scene__item scene__item--transitions scene__item--transitioning' : 'scene__item'
+                css = this.options.transitions && this.transitionsActive ? 'scene__item scene__item--transitions scene__item--transitioning' : 'scene__item'
                 ;
 
             // 1. check if there is a sceneItem
@@ -234,6 +234,7 @@ define( function( require ) {
          */
         onTransitionEnd  : function( e ) {
             this.trigger( 'sceneTransitionEnd' );
+            this.$el.removeClass( 'scene--transitioning' );
         }
 
     } );
