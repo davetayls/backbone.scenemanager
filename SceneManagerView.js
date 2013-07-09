@@ -35,7 +35,7 @@ define( function( require ) {
             this.currentSceneItemIndex = 0;
             this.containers = [];
             this.history = [];
-            this.historyPosition = 0;
+            this.historyIndex = 0;
             this.transitionsActive = false;
 
             // Bind contexts
@@ -143,25 +143,29 @@ define( function( require ) {
         },
         hideSceneItem    : function() {
             this.$currentContainer.removeClass( 'scene__item--current' );
+            this.$currentContainer = null;
             this.currentSceneItem = null;
+            this.currentSceneItemIndex = 0;
+            this.history = [];
+            this.historyIndex = 0;
         },
         pushHistory      : function( nextSceneItem ) {
-            this.history.splice( this.historyPosition + 1 );
+            this.history.splice( this.historyIndex + 1 );
             this.history.push( nextSceneItem );
-            this.historyPosition = this.history.length - 1;
+            this.historyIndex = this.history.length - 1;
         },
         back             : function() {
             var sceneItem,
-                historyPosition = --this.historyPosition
+                historyIndex = --this.historyIndex
                 ;
 
             // Check if there's history to navigate
-            if ( historyPosition < 0 ) {
+            if ( historyIndex < 0 ) {
                 return false;
             }
 
             // Step back
-            sceneItem = this.history[ historyPosition ];
+            sceneItem = this.history[ historyIndex ];
             this.showSceneItem( sceneItem, true );
 
             return true;
