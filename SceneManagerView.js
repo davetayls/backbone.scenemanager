@@ -97,10 +97,14 @@ define( function( require ) {
 
             // hide current
             if ( $currentContainer ) {
-                $currentContainer.one( DOM_EVENTS.transitionEnd, function( e ) {
+                if ( this.options.transitions ) {
+                    $currentContainer.one( DOM_EVENTS.transitionEnd, function( e ) {
+                        currentSceneItem.view.$el.detach();
+                        $currentContainer.removeClass( 'scene__item--transitioning' );
+                    } );
+                } else {
                     currentSceneItem.view.$el.detach();
-                    $currentContainer.removeClass( 'scene__item--transitioning' );
-                } );
+                }
                 $currentContainer.attr( 'class', css + (back ? ' scene__item--next' : ' scene__item--previous') );
             }
 
@@ -113,8 +117,7 @@ define( function( require ) {
             } );
 
             // position the element at the starting position
-            $nextContainer.attr( 'class', back ? 'scene__item scene__item--previous' :
-                                          'scene__item scene__item--next' );
+            $nextContainer.attr( 'class', back ? 'scene__item scene__item--previous' : 'scene__item scene__item--next' );
             $nextContainer.append( nextSceneItem.view.el );
 
             // Force reflow. More information here: http://www.phpied.com/rendering-repaint-reflowrelayout-restyle/
@@ -142,7 +145,30 @@ define( function( require ) {
             }
         },
         hideSceneItem    : function() {
-            this.$currentContainer.removeClass( 'scene__item--current' );
+            var $currentContainer = this.$currentContainer,
+                currentSceneItem = this.currentSceneItem,
+                css = this.options.transitions ? 'scene__item scene__item--transitions scene__item--transitioning' : 'scene__item'
+                ;
+
+            // Check if there is a sceneItem
+            if ( !currentSceneItem ) {
+                return;
+            }
+
+            if ( this.options.transitions ) {
+                $currentContainer.one( DOM_EVENTS.transitionEnd, function( e ) {
+                    currentSceneItem.view.$el.detach();
+                    $currentContainer.removeClass( 'scene__item--transitioning' );
+                } );
+            } else {
+                currentSceneItem.view.$el.detach();
+            }
+            $currentContainer.attr( 'class', css );
+
+            // Close current scene item
+            $currentContainer.removeClass( 'scene__item--current' );
+
+            // Reset scene state
             this.$currentContainer = null;
             this.currentSceneItem = null;
             this.currentSceneItemIndex = 0;
