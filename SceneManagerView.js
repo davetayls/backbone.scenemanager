@@ -165,6 +165,8 @@ define( function( require ) {
             }
             $currentContainer.attr( 'class', css );
 
+            this.showTransitions( this.options.transitions );
+
             // Close current scene item
             $currentContainer.removeClass( 'scene__item--current' );
 
@@ -198,11 +200,15 @@ define( function( require ) {
         },
         showTransitions  : function( yes ) {
             if ( yes === false ) {
+                this.$el.removeClass( 'scene--transitions scene--transitioning' );
                 this.transitionsActive = false;
-                this.$el.removeClass( 'scene--transitions' );
             } else {
+                if ( this.transitionsActive || this.options.initialTransition ) {
+                    this.$el.addClass( 'scene--transitions scene--transitioning' );
+                } else {
+                    this.$el.addClass( 'scene--transitions' );
+                }
                 this.transitionsActive = true;
-                this.$el.addClass( 'scene--transitions' );
             }
         },
         show             : function() {
