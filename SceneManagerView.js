@@ -14,10 +14,10 @@ define( function( require ) {
 
     return Backbone.View.extend( {
 
-        attributes : {
-            class  : 'scene'
+        attributes       : {
+            class : 'scene'
         },
-        defaults   : {
+        defaults         : {
             container         : '<div class="scene__item" />',
             containersNumber  : 3,
             initialTransition : true,
@@ -25,7 +25,7 @@ define( function( require ) {
             transitions       : true
         },
 
-        initialize : function() {
+        initialize       : function() {
 
             // Init properties
             _.defaults( this.options, this.defaults );
@@ -49,7 +49,7 @@ define( function( require ) {
             // Capture transitionend events
             this.$el.on( DOM_EVENTS.transitionEnd, this.onTransitionEnd );
         },
-        render     : function() {
+        render           : function() {
 
             var i;
 
@@ -68,7 +68,6 @@ define( function( require ) {
             }
 
         },
-
         getNextIndex     : function() {
             if ( this.currentSceneItemIndex + 1 >= this.containers.length ) {
                 return 0;
@@ -80,7 +79,6 @@ define( function( require ) {
             this.currentSceneItemIndex = this.getNextIndex();
             return this.containers[this.currentSceneItemIndex];
         },
-
         showSceneItem    : function( sceneItem, back ) {
 
             // cache pointers so we can do this async
@@ -93,7 +91,7 @@ define( function( require ) {
 
             // 1. check if there is a sceneItem
             // 2. check it's not currently visible
-            if ( !sceneItem || sceneItem === currentSceneItem ) {
+            if ( !sceneItem || ( !_.isNull( currentSceneItem ) && sceneItem.view === currentSceneItem.view ) ) {
                 return;
             }
 
@@ -115,7 +113,8 @@ define( function( require ) {
             } );
 
             // position the element at the starting position
-            $nextContainer.attr( 'class', back ? 'scene__item scene__item--previous' : 'scene__item scene__item--next' );
+            $nextContainer.attr( 'class', back ? 'scene__item scene__item--previous' :
+                                          'scene__item scene__item--next' );
             $nextContainer.append( nextSceneItem.view.el );
 
             // Force reflow. More information here: http://www.phpied.com/rendering-repaint-reflowrelayout-restyle/
@@ -133,7 +132,7 @@ define( function( require ) {
             $nextContainer.attr( 'class', css + ' scene__item--current' );
 
             // append sceneItem to history
-            if ( ! back ) {
+            if ( !back ) {
                 this.pushHistory( nextSceneItem );
             }
 
@@ -142,13 +141,16 @@ define( function( require ) {
                 Backbone.history.navigate( nextSceneItem.route );
             }
         },
-        pushHistory : function( nextSceneItem ) {
+        hideSceneItem    : function() {
+            this.$currentContainer.removeClass( 'scene__item--current' );
+            this.currentSceneItem = null;
+        },
+        pushHistory      : function( nextSceneItem ) {
             this.history.splice( this.historyPosition + 1 );
             this.history.push( nextSceneItem );
             this.historyPosition = this.history.length - 1;
         },
-
-        back : function() {
+        back             : function() {
             var sceneItem,
                 historyPosition = --this.historyPosition
                 ;
@@ -164,8 +166,7 @@ define( function( require ) {
 
             return true;
         },
-
-        showTransitions : function( yes ) {
+        showTransitions  : function( yes ) {
             if ( yes === false ) {
                 this.transitionsActive = false;
                 this.$el.removeClass( 'scene--transitions' );
@@ -174,19 +175,19 @@ define( function( require ) {
                 this.$el.addClass( 'scene--transitions' );
             }
         },
-        show            : function() {
+        show             : function() {
             this.options.shown = true;
             this.$el
                 .removeClass( 'scene--hide' )
                 .addClass( 'scene--show' );
         },
-        hide            : function() {
+        hide             : function() {
             this.options.shown = false;
             this.$el
                 .removeClass( 'scene--show' )
                 .addClass( 'scene--hide' );
         },
-        toggle          : function() {
+        toggle           : function() {
             if ( this.shown ) {
                 this.hide();
             } else {
