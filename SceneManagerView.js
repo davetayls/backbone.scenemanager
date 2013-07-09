@@ -86,7 +86,7 @@ define( function( require ) {
                 $currentContainer = this.$currentContainer,
                 nextSceneItem,
                 $nextContainer,
-                css = this.options.transitions && this.transitionsActive ? 'scene__item scene__item--transitions scene__item--transitioning' : 'scene__item'
+                css = this.options.transitions && ( this.transitionsActive || this.options.initialTransition ) ? 'scene__item scene__item--transitions scene__item--transitioning' : 'scene__item'
                 ;
 
             // 1. check if there is a sceneItem
