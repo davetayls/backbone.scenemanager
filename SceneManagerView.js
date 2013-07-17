@@ -50,7 +50,6 @@ define( function( require ) {
             this.$el.on( DOM_EVENTS.transitionEnd, this.onTransitionEnd );
         },
         render           : function() {
-
             var i;
 
             // Show or hide scene, based on options
@@ -66,7 +65,6 @@ define( function( require ) {
                 this.$el.append( $container );
                 this.containers.push( $container );
             }
-
         },
         getNextIndex     : function() {
             if ( this.currentSceneItemIndex + 1 >= this.containers.length ) {
@@ -105,10 +103,11 @@ define( function( require ) {
                 } else {
                     currentSceneItem.view.$el.detach();
                 }
+                currentSceneItem.view.trigger( 'inactiveScene' );
                 $currentContainer.attr( 'class', css + (back ? ' scene__item--next' : ' scene__item--previous') );
             }
 
-            // show sceneItem
+            // transition to next
             nextSceneItem = this.currentSceneItem = sceneItem;
             $nextContainer = this.$currentContainer = this.getNextContainer();
 
@@ -116,8 +115,11 @@ define( function( require ) {
                 $nextContainer.removeClass( 'scene__item--transitioning' );
             } );
 
-            // position the element at the starting position
+            // position the container at the starting position
             $nextContainer.attr( 'class', back ? 'scene__item scene__item--previous' : 'scene__item scene__item--next' );
+
+            // show sceneItem
+            nextSceneItem.view.trigger( 'activeScene' );
             $nextContainer.append( nextSceneItem.view.el );
 
             // Force reflow. More information here: http://www.phpied.com/rendering-repaint-reflowrelayout-restyle/
@@ -163,6 +165,7 @@ define( function( require ) {
             } else {
                 currentSceneItem.view.$el.detach();
             }
+            currentSceneItem.view.trigger( 'inactiveScene' );
             $currentContainer.attr( 'class', css );
 
             this.showTransitions( this.options.transitions );
