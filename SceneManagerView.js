@@ -10,7 +10,7 @@ define( function( require ) {
 
     var Backbone = require( 'backbone' ),
         DOM_EVENTS = require( 'helpers/dom_events' )
-        ;
+    ;
 
     return Backbone.View.extend( {
 
@@ -85,7 +85,7 @@ define( function( require ) {
                 nextSceneItem,
                 $nextContainer,
                 css = this.options.transitions && ( this.transitionsActive || this.options.initialTransition ) ? 'scene__item scene__item--transitions scene__item--transitioning' : 'scene__item'
-                ;
+            ;
 
             // 1. check if there is a sceneItem
             // 2. check it's not currently visible
@@ -150,7 +150,7 @@ define( function( require ) {
             var $currentContainer = this.$currentContainer,
                 currentSceneItem = this.currentSceneItem,
                 css = this.options.transitions ? 'scene__item scene__item--transitions scene__item--transitioning' : 'scene__item'
-                ;
+            ;
 
             // Check if there is a sceneItem
             if ( !currentSceneItem ) {
@@ -192,6 +192,7 @@ define( function( require ) {
 
             // Check if there's history to navigate
             if ( historyIndex < 0 ) {
+                this.historyIndex = 0;
                 return false;
             }
 
